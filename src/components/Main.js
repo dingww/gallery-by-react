@@ -25,11 +25,25 @@ function getRangeRandom(low, high) {
 
 // 获取0~30°之间的任意正负随机数
 function get30DegRandom() {
-	return ((Math.random() > 0.5 ? '' : '') + Math.ceil(Math.random() * 30));
+	return ((Math.random() > 0.5 ? '' : '-') + Math.ceil(Math.random() * 30));
 }
 
 
 var ImgFigure = React.createClass({
+
+	handleClick: function(e) {
+
+		if (this.props.arrange.isCenter) {
+			this.props.inverse();
+		} else {
+			this.props.center();
+		}
+
+		e.stopPropagation();
+		e.preventDefault();
+	},
+
+
 	render: function() {
 
 		var styleObj = {};
@@ -39,16 +53,65 @@ var ImgFigure = React.createClass({
 			styleObj = this.props.arrange.pos;
 		}
 
+		// 如果图片的旋转角度有值且不为0，添加旋转角度
+		if (this.props.arrange.rotate) {
+			(['-moz-', '-ms-', '-webkit-', '']).forEach(function(value) {
+				styleObj[value + 'transform'] = 'rotate(' + this.props.arrange.rotate + 'deg)';
+			}.bind(this));
+		}
+
+		// 如果是居中的图片，z-index设为11
+		if (this.props.arrange.isCenter) {
+			styleObj.zIndex = 11;
+		}
+
+		var imgFigureClassName = 'img-figure';
+		imgFigureClassName += this.props.arrange.isInverse ? ' is-inverse' : '';
+
 		return (
-			<figure className="img-figure" style={styleObj}>
+			<figure className={ imgFigureClassName } style={styleObj} onClick={this.handleClick}>
 				<img src={this.props.data.imageURL}	alt={this.props.data.title}/>
 				<figcaption>
 					<h2 className="img-title">{this.props.data.title}</h2>
+					<div className="img-back" onClick={this.handleClick}>
+						<p>{this.props.data.desc}</p>
+					</div>
 				</figcaption>
 			</figure>
 		);
 	}
 });
+
+// 控制组件
+var ControllerUnit = React.createClass({
+	handleClick: function(e) {
+		if (this.props.arrange.isCenter) {
+			this.props.inverse();
+		} else {
+			this.props.center();
+		}
+		e.stopPropagation();
+		e.preventDefault();
+	},
+	render: function() {
+		var controllerUnitClassName = 'controller-unit';
+
+		// 如果对应的是居中图片，显示控制按钮的居中状态
+		if (this.props.arrange.isCenter) {
+			controllerUnitClassName += ' is-center';
+			// 如果同时对应的是翻转图片，显示控制按钮的翻转状态
+			if (this.props.arrange.isInverse) {
+				controllerUnitClassName += ' is-inverse';
+			}
+		}
+
+		return (
+			<span className={controllerUnitClassName} onClick={this.handleClick}></span>
+		);
+	}
+
+
+})
 
 var AppComponent = React.createClass({
 	Constant: {
@@ -67,11 +130,21 @@ var AppComponent = React.createClass({
 		}
 	},
 
-	/*
-		重新布局所有图片
-		参数centerIndex指定剧中哪个图片
+	// 翻转图片，参数index输入当前执行inverse操作的图片对应的图片信息数组的iondex值
 
-	*/
+	inverse: function(index) {
+		return function() {
+			var imgsArrangeArr = this.state.imgsArrangeArr;
+
+			imgsArrangeArr[index].isInverse = !imgsArrangeArr[index].isInverse;
+
+			this.setState({
+				imgsArrangeArr: imgsArrangeArr
+			});
+		}.bind(this);
+	},
+
+	// 重新布局所有图片,参数centerIndex指定剧中哪个图片	
 	rearrange: function(centerIndex) {
 
 		var imgsArrangeArr = this.state.imgsArrangeArr,
@@ -92,7 +165,7 @@ var AppComponent = React.createClass({
 
 			imgsArrangeCenterArr = imgsArrangeArr.splice(centerIndex, 1);
 
-		// 首先居中centrerIndex的图片
+		// 首先居中centrerIndex的图片,居中的图片不需要旋转
 		imgsArrangeCenterArr[0] = {
 			pos: centerPos,
 			rotate: 0,
@@ -146,7 +219,14 @@ var AppComponent = React.createClass({
 		this.setState({
 			imgsArrangeArr: imgsArrangeArr
 		});
+	},
 
+	// 利用arrange函数居中对应的index图片
+
+	center: function(index) {
+		return function() {
+			this.rearrange(index);
+		}.bind(this);
 	},
 
 
@@ -205,7 +285,6 @@ var AppComponent = React.createClass({
 
 	},
 
-
 	render: function() {
 		var controllerUnits = [],
 			imgFigures = [];
@@ -216,11 +295,15 @@ var AppComponent = React.createClass({
 					pos: {
 						left: 0,
 						top: 0
-					}
+					},
+					rotate: 0,
+					isInverse: false,
+					isCenter: false
 				};
 			}
 
-			imgFigures.push(<ImgFigure data={value} ref={'imgFigure'+index} arrange={this.state.imgsArrangeArr[index]}/>);
+			imgFigures.push(<ImgFigure key={index} data={value} ref={'imgFigure'+index} arrange={this.state.imgsArrangeArr[index]} inverse={this.inverse(index)} center={this.center(index)}/>);
+			controllerUnits.push(<ControllerUnit key={index} arrange={this.state.imgsArrangeArr[index]} inverse={this.inverse(index)} center={this.center(index)}/>);
 		}.bind(this));
 
 		return (
