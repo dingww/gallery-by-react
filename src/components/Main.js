@@ -28,11 +28,9 @@ function get30DegRandom() {
 	return ((Math.random() > 0.5 ? '' : '-') + Math.ceil(Math.random() * 30));
 }
 
-
 var ImgFigure = React.createClass({
 
 	handleClick: function(e) {
-
 		if (this.props.arrange.isCenter) {
 			this.props.inverse();
 		} else {
@@ -42,7 +40,6 @@ var ImgFigure = React.createClass({
 		e.stopPropagation();
 		e.preventDefault();
 	},
-
 
 	render: function() {
 
@@ -55,8 +52,8 @@ var ImgFigure = React.createClass({
 
 		// 如果图片的旋转角度有值且不为0，添加旋转角度
 		if (this.props.arrange.rotate) {
-			(['-moz-', '-ms-', '-webkit-', '']).forEach(function(value) {
-				styleObj[value + 'transform'] = 'rotate(' + this.props.arrange.rotate + 'deg)';
+			(['MozTransform', 'msTransform', 'webkitTransform', '']).forEach(function(value) {
+				styleObj[value] = 'rotate(' + this.props.arrange.rotate + 'deg)';
 			}.bind(this));
 		}
 
@@ -90,9 +87,11 @@ var ControllerUnit = React.createClass({
 		} else {
 			this.props.center();
 		}
+
 		e.stopPropagation();
 		e.preventDefault();
 	},
+
 	render: function() {
 		var controllerUnitClassName = 'controller-unit';
 
@@ -109,9 +108,7 @@ var ControllerUnit = React.createClass({
 			<span className={controllerUnitClassName} onClick={this.handleClick}></span>
 		);
 	}
-
-
-})
+});
 
 var AppComponent = React.createClass({
 	Constant: {
@@ -131,7 +128,6 @@ var AppComponent = React.createClass({
 	},
 
 	// 翻转图片，参数index输入当前执行inverse操作的图片对应的图片信息数组的iondex值
-
 	inverse: function(index) {
 		return function() {
 			var imgsArrangeArr = this.state.imgsArrangeArr;
@@ -146,7 +142,6 @@ var AppComponent = React.createClass({
 
 	// 重新布局所有图片,参数centerIndex指定剧中哪个图片	
 	rearrange: function(centerIndex) {
-
 		var imgsArrangeArr = this.state.imgsArrangeArr,
 			Constant = this.Constant,
 			centerPos = Constant.centerPos,
@@ -157,12 +152,10 @@ var AppComponent = React.createClass({
 			hPosRangeY = hPosRange.y,
 			vPosRangeTopY = vPosRange.topY,
 			vPosRangeX = vPosRange.x,
-
 			imgsArrangeTopArr = [],
+
 			topImgNum = Math.floor(Math.random() * 2), //取一个或者不取
-
 			topImgSpliceIndex = 0,
-
 			imgsArrangeCenterArr = imgsArrangeArr.splice(centerIndex, 1);
 
 		// 首先居中centrerIndex的图片,居中的图片不需要旋转
@@ -185,7 +178,6 @@ var AppComponent = React.createClass({
 				},
 				rotate: get30DegRandom(),
 				isCenter: false
-
 			};
 		});
 
